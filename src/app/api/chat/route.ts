@@ -50,8 +50,8 @@ export async function POST(request: Request) {
     
     // 改进错误处理
     const errorMessage = error instanceof Error 
-      ? (error.message === 'Missing OPENAI_API_KEY environment variable' 
-        ? '未设置 OpenAI API 密钥，请检查环境变量配置' 
+      ? (error.message === 'Missing DEEPSEEK_API_KEY environment variable' 
+        ? '未设置 Deepseek API 密钥，请检查环境变量配置' 
         : error.message)
       : '处理请求时发生错误';
       
