@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { openai, defaultChatConfig, checkEnvironmentVariables } from '@/lib/deepseek';
+import { defaultChatConfig, createOpenAIClient } from '@/lib/deepseek';
 import OpenAI from 'openai';
 
 interface Message {
@@ -20,10 +20,10 @@ const SYSTEM_PROMPT = `你是一位充满智慧与幽默的AI助手，继承了�
 
 export async function POST(request: Request) {
   try {
-    // 运行时检查环境变量
-    checkEnvironmentVariables();
-
     const { messages } = await request.json() as { messages: Message[] };
+
+    // 创建OpenAI客户端实例
+    const openai = createOpenAIClient();
 
     const apiMessages: OpenAI.Chat.ChatCompletionMessageParam[] = [
       { role: 'system', content: SYSTEM_PROMPT },
@@ -47,8 +47,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ content });
   } catch (error) {
     console.error('Chat API Error:', error);
+    
+    // 改进错误处理
+    const errorMessage = error instanceof Error 
+      ? (error.message === 'Missing OPENAI_API_KEY environment variable' 
+        ? '未设置 OpenAI API 密钥，请检查环境变量配置' 
+        : error.message)
+      : '处理请求时发生错误';
+      
     return NextResponse.json(
-      { error: '处理请求时发生错误' },
+      { error: errorMessage },
       { status: 500 }
     );
   }
