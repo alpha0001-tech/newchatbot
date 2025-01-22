@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { openai, defaultChatConfig } from '@/lib/deepseek';
+import OpenAI from 'openai';
 
 interface Message {
   type: 'user' | 'ai';
@@ -21,15 +22,17 @@ export async function POST(request: Request) {
   try {
     const { messages } = await request.json() as { messages: Message[] };
 
+    const apiMessages: OpenAI.Chat.ChatCompletionMessageParam[] = [
+      { role: 'system', content: SYSTEM_PROMPT },
+      ...messages.map((msg) => ({
+        role: msg.type === 'user' ? 'user' : 'assistant',
+        content: msg.content,
+      } as OpenAI.Chat.ChatCompletionMessageParam)),
+    ];
+
     const response = await openai.chat.completions.create({
       ...defaultChatConfig,
-      messages: [
-        { role: 'system', content: SYSTEM_PROMPT },
-        ...messages.map((msg: Message) => ({
-          role: msg.type === 'user' ? 'user' : 'assistant',
-          content: msg.content,
-        })),
-      ],
+      messages: apiMessages,
     });
 
     // 获取AI的回复并进行格式化
