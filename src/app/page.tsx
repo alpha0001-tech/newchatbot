@@ -45,6 +45,7 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [isChatVisible, setIsChatVisible] = useState(false);
+  const [hasError, setHasError] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const chatScrollAreaRef = useRef<HTMLDivElement | null>(null);
   const progressInterval = useRef<NodeJS.Timeout | null>(null);
@@ -126,6 +127,7 @@ export default function Home() {
     setMessages(prev => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
+    setHasError(false);
     simulateProgress();
 
     try {
@@ -139,25 +141,33 @@ export default function Home() {
         }),
       });
 
+      const data = await response.json();
+      
       if (!response.ok) {
-        throw new Error('API请求失败');
+        throw new Error(data.error || '请求失败');
       }
 
-      const data = await response.json();
       if (progressInterval.current) {
         clearInterval(progressInterval.current);
         setProgress(100);
       }
+      
       setMessages(prev => [...prev, { type: 'ai', content: data.content }]);
     } catch (error) {
       console.error('Chat error:', error);
       if (progressInterval.current) {
         clearInterval(progressInterval.current);
       }
-      setMessages(prev => [...prev, { 
-        type: 'ai', 
-        content: '哎呀！看来是出了点技术故障。不过就像鲁迅先生说的："困难是一定有的，问题是要解决它。"\n\n让我们稍后再试吧。' 
-      }]);
+      
+      // 只有在没有显示错误消息时才添加错误消息
+      if (!hasError) {
+        setHasError(true);
+        const errorMessage = error instanceof Error ? error.message : '处理请求时发生错误';
+        setMessages(prev => [...prev, { 
+          type: 'ai', 
+          content: `哎呀！${errorMessage}。不过就像鲁迅先生说的："困难是一定有的，问题是要解决它。"\n\n让我们稍后再试吧。` 
+        }]);
+      }
     } finally {
       setIsLoading(false);
       setProgress(0);
