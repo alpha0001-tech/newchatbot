@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { openai, defaultChatConfig } from '@/lib/deepseek';
+import { openai, defaultChatConfig, checkEnvironmentVariables } from '@/lib/deepseek';
 import OpenAI from 'openai';
 
 interface Message {
@@ -20,6 +20,9 @@ const SYSTEM_PROMPT = `你是一位充满智慧与幽默的AI助手，继承了�
 
 export async function POST(request: Request) {
   try {
+    // 运行时检查环境变量
+    checkEnvironmentVariables();
+
     const { messages } = await request.json() as { messages: Message[] };
 
     const apiMessages: OpenAI.Chat.ChatCompletionMessageParam[] = [

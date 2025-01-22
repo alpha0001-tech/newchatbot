@@ -1,12 +1,8 @@
 import OpenAI from 'openai';
 
-if (!process.env.OPENAI_API_KEY) {
-  throw new Error('Missing OPENAI_API_KEY environment variable');
-}
-
 // 创建OpenAI客户端实例
 export const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: process.env.OPENAI_API_KEY || 'dummy-key-for-build',
   baseURL: 'https://api.deepseek.com/v1',
 });
 
@@ -15,4 +11,12 @@ export const defaultChatConfig = {
   model: 'deepseek-chat',
   temperature: 0.7,
   max_tokens: 1000,
-}; 
+};
+
+// 运行时检查环境变量
+export function checkEnvironmentVariables() {
+  if (!process.env.OPENAI_API_KEY) {
+    throw new Error('Missing OPENAI_API_KEY environment variable');
+  }
+  return true;
+} 
